@@ -1,0 +1,12 @@
+name: pool
+version: 0.1.0
+description: Generic (connection) pools for Crystal
+
+authors:
+  - Julien Portalier <julien@portalier.com>
+
+development_dependencies:
+  minitest:
+    github: ysbaddaden/minitest.cr
+
+license: Apache-2.0
