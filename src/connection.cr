@@ -20,7 +20,7 @@ class ConnectionPool(T) < Pool(T)
     connections[Fiber.current.object_id] ||= checkout
   end
 
-  # Releases a checkout connection for the current coroutine (if any).
+  # Releases the checkout connection for the current coroutine (if any).
   def release
     if conn = connections.delete(Fiber.current.object_id)
       checkin(conn)

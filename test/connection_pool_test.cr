@@ -3,6 +3,7 @@ require "./test_helper"
 class ConnectionPoolTest < Minitest::Test
   def test_connection_is_tied_to_coroutine
     pool = ConnectionPool.new { Conn.new }
+    pool.start_all
 
     async do
       conn = pool.connection

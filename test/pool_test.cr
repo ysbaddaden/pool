@@ -47,4 +47,31 @@ class PoolTest < Minitest::Test
     assert pool.checkout.is_a?(Conn)
     assert_raises(IO::Timeout) { pool.checkout }
   end
+
+  def test_lazily_starts_instances
+    pool = Pool.new(capacity: 100) { Conn.new }
+    assert_equal 0, pool.size
+    assert_equal 100, pool.pending
+
+    3.times { pool.checkout }
+    assert_equal 3, pool.size
+    assert_equal 97, pool.pending
+  end
+
+  def test_reuses_instances_as_long_as_needed
+    pool = Pool.new(capacity: 100) { Conn.new }
+    assert_equal 0, pool.size
+    assert_equal 100, pool.pending
+
+    99.times { pool.checkin(pool.checkout) }
+    assert_equal 1, pool.size
+    assert_equal 100, pool.pending
+  end
+
+  def test_starts_all_instances
+    pool = Pool.new(capacity: 10) { Conn.new }
+    pool.start_all
+    assert_equal 10, pool.size
+    assert_equal 10, pool.pending
+  end
 end

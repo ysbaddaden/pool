@@ -4,12 +4,22 @@
 # checkout an instance from an empty pool will block until another coroutine
 # checkin an instance back, up until a timeout is reached.
 class Pool(T)
-  # TODO: lazily create connections
   # TODO: shutdown (close all connections)
   # FIXME: thread safety
 
+  # Returns how many instances can be started at maximum capacity.
   getter :capacity
+
+  # Returns how much time to wait for an instance to be available before raising
+  # a Timeout exception.
   getter :timeout
+
+  # Returns how many instances are available for checkout.
+  getter :pending
+
+  # Returns how many instances have been started.
+  getter :size
+
   private getter :pool
 
   def initialize(@capacity = 5 : Int, @timeout = 5.0 : Float, &block : -> T)
@@ -19,20 +29,31 @@ class Pool(T)
     buffer :: UInt8[1]
     @buffer = buffer.to_slice
 
+    @size = 0
+    @pending = @capacity
     @pool = [] of T
-    capacity.times { pool << block.call }
+    @block = block
   end
 
-  # Returns how many instances are available for checkout.
-  def pending
-    pool.size
+  def start_all
+    until size >= @capacity
+      start_one
+    end
   end
 
   # Checkout an instance from the pool. Blocks until an instance is available if
   # all instances are busy. Eventually raises an `IO::Timeout` error.
   def checkout : T
     loop do
-      return pool.shift if pool.any?
+      if obj = pool.shift?
+        @pending -= 1
+        return obj
+      end
+
+      unless size >= @capacity
+        start_one
+      end
+
       @r.read(@buffer)
     end
   end
@@ -40,8 +61,15 @@ class Pool(T)
   # Checkin an instance back into the pool.
   def checkin(connection : T)
     unless pool.includes?(connection)
-      pool.push(connection)
+      pool << connection
+      @pending += 1
       @w << '.'
     end
+  end
+
+  private def start_one
+    @size += 1
+    pool << @block.call
+    @w << '.'
   end
 end
