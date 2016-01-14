@@ -26,8 +26,7 @@ class Pool(T)
     @r, @w = IO.pipe(read_blocking: false, write_blocking: false)
     @r.read_timeout = @timeout
 
-    buffer :: UInt8[1]
-    @buffer = buffer.to_slice
+    @buffer = Slice(UInt8).new(1)
 
     @size = 0
     @pending = @capacity
