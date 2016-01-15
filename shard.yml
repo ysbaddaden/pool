@@ -1,6 +1,6 @@
 name: pool
 version: 0.2.0
-description: Generic (connection) pools for Crystal
+description: Generic (connection) pools
 
 authors:
   - Julien Portalier <julien@portalier.com>
