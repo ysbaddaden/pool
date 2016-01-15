@@ -49,7 +49,7 @@ class PoolTest < Minitest::Test
   end
 
   def test_lazily_starts_instances
-    pool = Pool.new(capacity: 100) { Conn.new }
+    pool = Pool.new(capacity: 100, timeout: 1.0) { Conn.new }
     assert_equal 0, pool.size
     assert_equal 100, pool.pending
 
@@ -73,5 +73,19 @@ class PoolTest < Minitest::Test
     pool.start_all
     assert_equal 10, pool.size
     assert_equal 10, pool.pending
+  end
+
+  def test_can_checkin_more_than_pipe_limit
+    # this bug happens when the pipe (used for notification and timeout) is
+    # full, because we always write to it but don't always read from it.
+    pool = Pool.new(capacity: 1, timeout: 1.0) { Conn.new }
+    i = 0
+
+    loop do
+      pool.checkin(pool.checkout)
+      break if (i += 1) == 65537
+    end
+
+    assert_equal 65537, i
   end
 end

@@ -26,9 +26,7 @@ class Pool(T)
     @r, @w = IO.pipe(read_blocking: false, write_blocking: false)
     @r.read_timeout = @timeout
 
-    buffer :: UInt8[1]
-    @buffer = buffer.to_slice
-
+    @buffer = Slice(UInt8).new(1)
     @size = 0
     @pending = @capacity
     @pool = [] of T
@@ -45,16 +43,16 @@ class Pool(T)
   # all instances are busy. Eventually raises an `IO::Timeout` error.
   def checkout : T
     loop do
-      if obj = pool.shift?
-        @pending -= 1
-        return obj
-      end
-
-      unless size >= @capacity
+      if pool.empty? && size < @capacity
         start_one
       end
 
       @r.read(@buffer)
+
+      if obj = pool.shift?
+        @pending -= 1
+        return obj
+      end
     end
   end
 
@@ -63,13 +61,13 @@ class Pool(T)
     unless pool.includes?(connection)
       pool << connection
       @pending += 1
-      @w << '.'
+      @w.write(@buffer)
     end
   end
 
   private def start_one
     @size += 1
     pool << @block.call
-    @w << '.'
+    @w.write(@buffer)
   end
 end
