@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## v0.2.2 - Mar 22, 2016
+
+Fix:
+- Crystal 0.14.0 compatibility
+
 ## v0.2.1 - Jan 15, 2016
 
 Fix:
