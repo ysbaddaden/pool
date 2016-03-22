@@ -22,7 +22,7 @@ class Pool(T)
 
   private getter :pool
 
-  def initialize(@capacity = 5 : Int, @timeout = 5.0 : Float, &block : -> T)
+  def initialize(@capacity : Int = 5, @timeout : Float = 5.0, &block : -> T)
     @r, @w = IO.pipe(read_blocking: false, write_blocking: false)
     @r.read_timeout = @timeout
 
