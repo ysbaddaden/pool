@@ -7,6 +7,8 @@ class Conn
 end
 
 module AsyncTest
+  @exception : Exception?
+
   def before_setup
     super
     @done = @exception = nil

@@ -8,21 +8,24 @@ class Pool(T)
   # FIXME: thread safety
 
   # Returns how many instances can be started at maximum capacity.
-  getter :capacity
+  getter capacity
 
   # Returns how much time to wait for an instance to be available before raising
   # a Timeout exception.
-  getter :timeout
+  getter timeout
 
   # Returns how many instances are available for checkout.
-  getter :pending
+  getter pending
 
   # Returns how many instances have been started.
-  getter :size
+  getter size
 
-  private getter :pool
+  private getter pool
 
-  def initialize(@capacity : Int = 5, @timeout : Float = 5.0, &block : -> T)
+  @r : IO::FileDescriptor
+  @w : IO::FileDescriptor
+
+  def initialize(@capacity : Int32 = 5, @timeout : Float64 = 5.0, &block : -> T)
     @r, @w = IO.pipe(read_blocking: false, write_blocking: false)
     @r.read_timeout = @timeout
 
