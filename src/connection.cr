@@ -42,4 +42,9 @@ class ConnectionPool(T) < Pool(T)
   private def connections
     @connections ||= {} of UInt64 => T
   end
+
+  # Transparent calls within connection
+  macro method_missing(call)
+    connection { |cn| cn.{{call}} }
+  end
 end

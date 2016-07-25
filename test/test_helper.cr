@@ -4,6 +4,17 @@ require "../src/pool"
 require "../src/connection"
 
 class Conn
+  def method1
+    1
+  end
+
+  def method2(x : String)
+    x.size
+  end
+
+  def method3(&block : -> String)
+    yield.size
+  end
 end
 
 module AsyncTest
