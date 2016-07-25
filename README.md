@@ -47,6 +47,12 @@ pg.connection do |conn|
 end
 ```
 
+It also support transparent proxying (by method missing), for example above:
+
+```crystal
+pg.exec("SELECT * FROM posts")
+```
+
 ## License
 
 Licensed under the Apache License, Version 2.0

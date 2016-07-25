@@ -53,4 +53,11 @@ class ConnectionPoolTest < Minitest::Test
 
     wait
   end
+
+  def test_proxying
+    pool = ConnectionPool.new { Conn.new }
+    assert_equal 1, pool.method1
+    assert_equal 4, pool.method2("test")
+    assert_equal 4, pool.method3 { "test" }
+  end
 end
