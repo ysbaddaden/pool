@@ -5,9 +5,11 @@ description: Generic (connection) pools
 authors:
   - Julien Portalier <julien@portalier.com>
 
+crystal: ">= 1.0.0, < 2.0.0"
+
 development_dependencies:
   minitest:
     github: ysbaddaden/minitest.cr
-    version: ">= 0.5.0"
+    version: ~> 1.0.0
 
 license: Apache-2.0
