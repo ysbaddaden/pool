@@ -1,5 +1,5 @@
 require "./pool"
-require "mt_helper"
+require "mt_helpers"
 
 # Sharing connections across coroutines.
 #
@@ -9,6 +9,7 @@ require "mt_helper"
 class ConnectionPool(T) < Pool(T)
   # TODO: reap connection of dead coroutines that didn't checkin (or died before)
   # FIXME: thread safety
+  @connections = SafeHash(UInt64, T).new
 
   # Returns true if a connection was checkout for the current coroutine.
   def active?
@@ -41,6 +42,6 @@ class ConnectionPool(T) < Pool(T)
   end
 
   private def connections
-    @connections ||= SafeHash of UInt64 => T
+    @connections
   end
 end

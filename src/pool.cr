@@ -1,4 +1,4 @@
-require "mt_helper"
+require "mt_helpers"
 
 # Generic pool.
 #
@@ -34,7 +34,7 @@ class Pool(T)
     @buffer = Slice(UInt8).new(1)
     @size = 0
     @pending = @capacity
-    @pool = SafeArray of T
+    @pool = SafeArray(T).new
     @block = block
   end
 
