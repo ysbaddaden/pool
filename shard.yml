@@ -11,4 +11,7 @@ development_dependencies:
   minitest:
     github: ysbaddaden/minitest.cr
 
+dependencies:
+  mt_helpers:
+    github: pbrumm/mt_helpers
 license: Apache-2.0

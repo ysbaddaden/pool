@@ -4,3 +4,7 @@ shards:
     git: https://github.com/ysbaddaden/minitest.cr.git
     version: 1.0.1
 
+  mt_helpers:
+    git: https://github.com/pbrumm/mt_helpers.git
+    version: 0.1.0+git.commit.d66f04da7a0e03e4c305e63d1a84e23e9bead83f
+

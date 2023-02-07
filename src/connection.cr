@@ -1,4 +1,5 @@
 require "./pool"
+require "mt_helper"
 
 # Sharing connections across coroutines.
 #
@@ -40,6 +41,6 @@ class ConnectionPool(T) < Pool(T)
   end
 
   private def connections
-    @connections ||= {} of UInt64 => T
+    @connections ||= SafeHash of UInt64 => T
   end
 end

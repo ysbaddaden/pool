@@ -1,3 +1,5 @@
+require "mt_helper"
+
 # Generic pool.
 #
 # It will create N instances that can be checkin then checkout. Trying to
@@ -32,7 +34,7 @@ class Pool(T)
     @buffer = Slice(UInt8).new(1)
     @size = 0
     @pending = @capacity
-    @pool = [] of T
+    @pool = SafeArray of T
     @block = block
   end
 
