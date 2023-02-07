@@ -30,7 +30,7 @@ class Pool(T)
   def initialize(@capacity : Int32 = 5, @timeout : Float64 = 5.0, &block : -> T)
     @r, @w = IO.pipe(read_blocking: false, write_blocking: false)
     @r.read_timeout = @timeout
-
+    @mutex = Mutex.new
     @buffer = Slice(UInt8).new(1)
     @size = 0
     @pending = @capacity
@@ -39,34 +39,40 @@ class Pool(T)
   end
 
   def start_all
-    until size >= @capacity
-      start_one
+    @mutex.synchronize do
+      until size >= @capacity
+        start_one
+      end
     end
   end
 
   # Checkout an instance from the pool. Blocks until an instance is available if
   # all instances are busy. Eventually raises an `IO::Timeout` error.
   def checkout : T
-    loop do
-      if pool.empty? && size < @capacity
-        start_one
-      end
+    @mutex.synchronize do
+      loop do
+        if pool.empty? && size < @capacity
+          start_one
+        end
 
-      @r.read(@buffer)
+        @r.read(@buffer)
 
-      if obj = pool.shift?
-        @pending -= 1
-        return obj
+        if obj = pool.shift?
+          @pending -= 1
+          return obj
+        end
       end
     end
   end
 
   # Checkin an instance back into the pool.
   def checkin(connection : T)
-    unless pool.includes?(connection)
-      pool << connection
-      @pending += 1
-      @w.write(@buffer)
+    @mutex.synchronize do
+      unless pool.includes?(connection)
+        pool << connection
+        @pending += 1
+        @w.write(@buffer)
+      end
     end
   end
 
