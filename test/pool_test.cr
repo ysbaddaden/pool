@@ -4,11 +4,11 @@ class PoolTest < Minitest::Test
   def test_initialize
     pool = Pool.new { Conn.new }
     assert_equal 5, pool.capacity
-    assert_equal 5.0, pool.timeout
+    assert_equal 5.0.seconds, pool.timeout
 
-    pool = Pool.new(capacity: 2, timeout: 0.1) { Conn.new }
+    pool = Pool.new(capacity: 2, timeout: 0.1.seconds) { Conn.new }
     assert_equal 2, pool.capacity
-    assert_equal 0.1, pool.timeout
+    assert_equal 0.1.seconds, pool.timeout
   end
 
   def test_checkout_and_checkin
@@ -26,7 +26,7 @@ class PoolTest < Minitest::Test
   end
 
   def test_waits_for_instance_to_be_unavailable
-    pool = Pool.new(capacity: 1, timeout: 0.01) { Conn.new }
+    pool = Pool.new(capacity: 1, timeout: 0.01.seconds) { Conn.new }
 
     spawn do
       assert conn = pool.checkout
@@ -42,14 +42,14 @@ class PoolTest < Minitest::Test
   end
 
   def test_timeout_waiting_for_instance_to_be_available
-    pool = Pool.new(capacity: 2, timeout: 0.001) { Conn.new }
+    pool = Pool.new(capacity: 2, timeout: 0.001.seconds) { Conn.new }
     assert pool.checkout.is_a?(Conn)
     assert pool.checkout.is_a?(Conn)
-    assert_raises(IO::Timeout) { pool.checkout }
+    assert_raises(IO::TimeoutError) { pool.checkout }
   end
 
   def test_lazily_starts_instances
-    pool = Pool.new(capacity: 100, timeout: 1.0) { Conn.new }
+    pool = Pool.new(capacity: 100, timeout: 1.0.seconds) { Conn.new }
     assert_equal 0, pool.size
     assert_equal 100, pool.pending
 
@@ -78,7 +78,7 @@ class PoolTest < Minitest::Test
   def test_can_checkin_more_than_pipe_limit
     # this bug happens when the pipe (used for notification and timeout) is
     # full, because we always write to it but don't always read from it.
-    pool = Pool.new(capacity: 1, timeout: 1.0) { Conn.new }
+    pool = Pool.new(capacity: 1, timeout: 1.0.seconds) { Conn.new }
     i = 0
 
     loop do

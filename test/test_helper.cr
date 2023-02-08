@@ -8,6 +8,7 @@ end
 
 module AsyncTest
   @exception : Exception?
+  @mutex = Mutex.new
 
   def before_setup
     super
@@ -22,24 +23,24 @@ module AsyncTest
   def wait
     loop do
       sleep 0
-      break if @done
+      break if @mutex.synchronize { @done }
     end
 
-    if exception = @exception
+    if exception = @mutex.synchronize { @exception }
       raise exception
     end
   end
 
   def async(&block)
-    @done = false
+    @mutex.synchronize { @done = false }
 
     spawn do
       begin
         block.call
       rescue ex
-        @exception = ex
+        @mutex.synchronize { @exception = ex }
       ensure
-        @done = true
+        @mutex.synchronize { @done = true }
       end
     end
   end

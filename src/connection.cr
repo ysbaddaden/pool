@@ -5,41 +5,43 @@ require "./pool"
 # Connections will be checkout from the pool and tied to the current fiber,
 # until they are checkin, and thus be usable by another coroutine. Connections
 # may also be manually checkout and checkin.
+#
+# TODO: reap connection of dead coroutines that didn't checkin (or died before)
 class ConnectionPool(T) < Pool(T)
-  # TODO: reap connection of dead coroutines that didn't checkin (or died before)
-  # FIXME: thread safety
+  @connections_mutex = Mutex.new(:unchecked)
+  @connections = {} of Fiber => T
 
-  # Returns true if a connection was checkout for the current coroutine.
+  # Returns true if a connection was checkout for the current Fiber.
   def active?
-    connections.has_key?(Fiber.current.object_id)
+    @connections_mutex.synchronize { @connections.has_key?(Fiber.current) }
   end
 
   # Returns the already checkout connection or checkout a connection then
-  # attaches it to the current coroutine.
+  # attaches it to the current Fiber.
   def connection
-    connections[Fiber.current.object_id] ||= checkout
+    if conn = @connections_mutex.synchronize { @connections[Fiber.current]? }
+      conn
+    else
+      @connections_mutex.synchronize { @connections[Fiber.current] = checkout }
+    end
   end
 
-  # Releases the checkout connection for the current coroutine (if any).
+  # Releases the checkout connection for the current Fiber (if any).
   def release
-    if conn = connections.delete(Fiber.current.object_id)
+    if conn = @connections_mutex.synchronize { @connections.delete(Fiber.current) }
       checkin(conn)
     end
   end
 
   # Yields a connection.
   #
-  # If a connection was already checkout for the curent coroutine, it will be
+  # If a connection was already checkout for the curent Fiber, it will be
   # yielded. Otherwise a connection will be checkout and tied to the current
-  # coroutine, passed to the block and eventually checkin.
+  # Fiber, passed to the block and eventually checkin.
   def connection
     fresh_connection = !active?
     yield connection
   ensure
     release if fresh_connection
-  end
-
-  private def connections
-    @connections ||= {} of UInt64 => T
   end
 end
